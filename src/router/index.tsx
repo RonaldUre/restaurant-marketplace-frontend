@@ -1,19 +1,27 @@
+// src/router/index.tsx
 import { Routes, Route } from "react-router-dom";
 
-// Layouts
+// Layout
 import PrivateLayout from "@/components/layout/PrivateLayout";
 
-// Páginas
+// Auth & Public Pages
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import LoginPageCustomer from "@/features/auth/pages/LoginPageCustomer";
 import LoginPageAdmin from "@/features/auth/pages/LoginPageAdmin";
-import DashboardPage from "@/features/dashboard/pages/DashboardPage";
-import DashboardAdminPage from "@/features/admin/pages/DashboardAdminPage";
-import ProfilePage from "@/features/customer/pages/ProfilePage"; // 👈 1. IMPORTAR LA NUEVA PÁGINA
-
-// Lógica de rutas
-import { ProtectedRoute } from "./ProtectedRoute";
 import { LandingPage } from "./LandingPage";
+import { ProtectedRoute } from "./ProtectedRoute";
+
+// Customer Pages
+import DashboardPage from "@/features/dashboard/pages/DashboardPage";
+import ProfilePage from "@/features/customer/pages/ProfilePage";
+
+// Admin Pages
+import DashboardAdminPage from "@/features/admin/pages/DashboardAdminPage";
+
+// Platform (Super Admin) Pages
+import RestaurantListPage from "@/features/restaurant/pages/RestaurantListPage";
+// 👇 --- 1. IMPORTA LA PÁGINA DEL FORMULARIO ---
+import RestaurantFormPage from "@/features/restaurant/pages/RestaurantFormPage";
 
 export default function AppRoutes() {
   return (
@@ -24,9 +32,9 @@ export default function AppRoutes() {
       <Route path="/login/customer" element={<LoginPageCustomer />} />
       <Route path="/admin/login" element={<LoginPageAdmin />} />
 
-      {/* --- Rutas Protegidas (envueltas con el Layout) --- */}
+      {/* --- Rutas Privadas (con Sidebar y Layout) --- */}
       <Route element={<PrivateLayout />}>
-        {/* Rutas para Clientes */}
+        {/* --- Rutas de Cliente --- */}
         <Route
           path="/dashboard"
           element={
@@ -35,7 +43,6 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        {/* 👇 2. AÑADIR LA NUEVA RUTA DE PERFIL 👇 */}
         <Route
           path="/profile"
           element={
@@ -45,7 +52,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Rutas para Administradores */}
+        {/* --- Rutas de Administrador --- */}
         <Route
           path="/admin/dashboard"
           element={
@@ -54,7 +61,28 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* --- Rutas de Super Admin --- */}
+        <Route
+          path="/admin/restaurants"
+          element={
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <RestaurantListPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* 👇 --- 2. AÑADE LA RUTA PARA CREAR --- */}
+        <Route
+          path="/admin/restaurants/new"
+          element={
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <RestaurantFormPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* NOTA: Aquí iría la ruta para editar: /admin/restaurants/:id/edit */}
       </Route>
     </Routes>
   );
 }
+

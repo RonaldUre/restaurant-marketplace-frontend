@@ -1,10 +1,8 @@
 // src/types/pagination.ts
+
+// 👇 ESTRUCTURA ACTUALIZADA PARA COINCIDIR CON EL BACKEND
 export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  items: T[];
+  totalElements: number;
+  totalPages: number;
 }
