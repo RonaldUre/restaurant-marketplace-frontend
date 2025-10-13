@@ -1,5 +1,5 @@
 // src/features/auth/services/authService.ts
-import { api } from "@/lib/axios";
+import { api, publicApi  } from "@/lib/axios";
 
 // --- Interfaces de Tipos (DTOs) ---
 // Basado en LoginRequest.java
@@ -41,15 +41,17 @@ export interface RefreshPayload { // 👈 AÑADE ESTA INTERFAZ
  * POST /auth/login/customer
  */
 export const loginCustomer = (payload: LoginPayload) => {
-  return api.post<TokenResponse>("/auth/login/customer", payload);
+  // 👇 2. Usa publicApi
+  return publicApi.post<TokenResponse>("/auth/login/customer", payload);
 };
 
 /**
  * Llama al endpoint de login para administradores.
  * POST /auth/login/admin
  */
-export const loginAdmin = (payload: LoginPayload) => { // 👈 AÑADE ESTA NUEVA FUNCIÓN
-  return api.post<TokenResponse>("/auth/login/admin", payload);
+export const loginAdmin = (payload: LoginPayload) => {
+  // 👇 3. Usa publicApi
+  return publicApi.post<TokenResponse>("/auth/login/admin", payload);
 };
 
 /**
@@ -57,7 +59,17 @@ export const loginAdmin = (payload: LoginPayload) => { // 👈 AÑADE ESTA NUEVA
  * POST /public/customers
  */
 export const registerCustomer = (payload: RegisterPayload) => {
-  return api.post<CustomerRegisteredResponse>("/public/customers", payload);
+  // 👇 4. Usa publicApi
+  return publicApi.post<CustomerRegisteredResponse>("/public/customers", payload);
+};
+
+/**
+ * Llama al endpoint de refresco de token.
+ * POST /auth/refresh
+ */
+export const refreshToken = (payload: RefreshPayload) => {
+  // 👇 5. ¡LA MÁS IMPORTANTE! Usa publicApi
+  return publicApi.post<TokenResponse>("/auth/refresh", payload);
 };
 
 /**
@@ -65,9 +77,6 @@ export const registerCustomer = (payload: RegisterPayload) => {
  * GET /customers/me
  */
 export const getCustomerMe = () => {
+  // 👇 6. Esta se queda con 'api' porque es una ruta protegida
   return api.get("/customers/me");
-};
-
-export const refreshToken = (payload: RefreshPayload) => { // 👈 AÑADE ESTA FUNCIÓN
-  return api.post<TokenResponse>("/auth/refresh", payload);
 };

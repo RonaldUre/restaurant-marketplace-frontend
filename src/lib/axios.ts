@@ -1,30 +1,58 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/axios.ts
-import axios from 'axios';
-import { refreshToken } from '@/features/auth/services/authService';
+import axios from "axios";
+import { refreshToken } from "@/features/auth/services/authService";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+const baseURL = import.meta.env.VITE_API_URL;
+
+// ✅ Instancia #1: Para llamadas públicas. SIN INTERCEPTORES.
+export const publicApi = axios.create({
+  baseURL,
 });
+
+// ✅ Instancia #2: Para llamadas privadas. CON INTERCEPTORES.
+export const api = axios.create({
+  baseURL,
+});
+
+// Lista de rutas que NUNCA deben llevar el token de autorización
+const publicAuthUrls = [
+  '/auth/login/customer', 
+  '/auth/login/admin', 
+  '/auth/refresh',
+  '/public/customers'
+];
+
+
 
 // 1. Interceptor para AÑADIR el token a cada petición
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    // 👇 --- CAMBIO CLAVE AQUÍ --- 👇
+    // No adjuntes el token de acceso a la petición de refresco
+    if (config.url && publicAuthUrls.includes(config.url)) {
+      return config;
+    }
+
+    const token = localStorage.getItem("accessToken");
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+// ... el resto del archivo permanece igual ...
 // 2. Interceptor para MANEJAR la expiración del token
 let isRefreshing = false;
-let failedQueue: { resolve: (value: unknown) => void; reject: (reason?: any) => void; }[] = [];
+let failedQueue: {
+  resolve: (value: unknown) => void;
+  reject: (reason?: any) => void;
+}[] = [];
 
 const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -39,10 +67,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Si el error es 401 y no es una petición de refresco fallida
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Si ya se está refrescando, pone la petición en cola
+        // --- LOG PARA DEPURAR ---
+        console.log("REQUEST EN COLA:", originalRequest.url);
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject });
         }).then(token => {
@@ -53,30 +81,43 @@ api.interceptors.response.use(
 
       originalRequest._retry = true;
       isRefreshing = true;
+      
+      // --- LOG PARA DEPURAR ---
+      console.log("⛔ Token expirado. INICIANDO LÓGICA DE REFRESH.");
 
       try {
         const currentRefreshToken = localStorage.getItem('refreshToken');
-        if (!currentRefreshToken) return Promise.reject(error);
+        if (!currentRefreshToken) {
+            console.error("No hay refresh token para intentar el refresco.");
+            return Promise.reject(error);
+        }
 
         const response = await refreshToken({ refreshToken: currentRefreshToken });
+        
+        // --- LOG PARA DEPURAR ---
+        console.log("✅ Token refrescado exitosamente. NUEVOS TOKENS RECIBIDOS.");
+
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
 
         localStorage.setItem('accessToken', newAccessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
+        localStorage.setItem('refreshToken', newRefreshToken); // Esto es correcto
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
         processQueue(null, newAccessToken);
         return api(originalRequest);
       } catch (refreshError) {
+        // --- LOG PARA DEPURAR ---
+        console.error("❌ FALLÓ EL REFRESH TOKEN. Limpiando sesión.", refreshError);
         processQueue(refreshError, null);
-        // Si el refresco falla, cerramos sesión
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login/customer'; // O una lógica más avanzada
+        window.location.href = '/login/customer'; 
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
+        // --- LOG PARA DEPURAR ---
+        console.log("Lógica de refresh FINALIZADA.");
       }
     }
     return Promise.reject(error);
