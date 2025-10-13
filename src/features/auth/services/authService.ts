@@ -34,6 +34,10 @@ export interface RefreshPayload { // 👈 AÑADE ESTA INTERFAZ
   refreshToken: string;
 }
 
+export interface LogoutPayload { // 👈 AÑADE ESTA INTERFAZ
+  refreshToken: string;
+}
+
 // --- Funciones del Servicio API ---
 
 /**
@@ -61,6 +65,14 @@ export const loginAdmin = (payload: LoginPayload) => {
 export const registerCustomer = (payload: RegisterPayload) => {
   // 👇 4. Usa publicApi
   return publicApi.post<CustomerRegisteredResponse>("/public/customers", payload);
+};
+
+export const logoutUser = (payload: LogoutPayload, allSessions = false) => {
+  // 👇 Construimos la URL dinámicamente
+  const url = allSessions ? "/auth/logout?all=true" : "/auth/logout";
+  
+  // Usamos la URL construida en la llamada a la API
+  return api.post(url, payload);
 };
 
 /**

@@ -32,6 +32,10 @@ export default function DashboardPage() {
     }
   };
 
+  const handleLogoutAll = () => {
+    logout(true); // Llama a logout con el parámetro 'true'
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-lg">
@@ -45,15 +49,19 @@ export default function DashboardPage() {
             ¡Bienvenido de nuevo,{" "}
             <span className="font-semibold">{user?.email ?? "Usuario"}</span>!
           </p>
-          
+
           {/* 5. El nuevo botón para llamar a la API */}
           <Button onClick={handleFetchProfile} disabled={isLoading}>
             {isLoading ? "Cargando..." : "Cargar Mi Perfil (API Call)"}
           </Button>
-          
-          <Button variant="destructive" onClick={logout}>
-            Cerrar Sesión
-          </Button>
+
+            <Button variant="destructive" onClick={() => logout()}>
+              Cerrar Sesión
+            </Button>
+
+          <Button variant="outline" onClick={handleLogoutAll}>
+              Cerrar todas las Sesiones
+            </Button>
 
           {/* 6. Área para mostrar los datos de la API */}
           {profileData && (

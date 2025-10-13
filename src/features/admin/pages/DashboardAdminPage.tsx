@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function DashboardAdminPage() {
   const { user, logout } = useAuth();
 
+  const handleLogoutAll = () => {
+    logout(true);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <Card className="w-full max-w-lg bg-slate-800 border-slate-700 text-white">
@@ -23,8 +27,18 @@ export default function DashboardAdminPage() {
             Rol de usuario:{" "}
             <span className="font-semibold text-amber-400">{user?.role}</span>
           </p>
-          <Button variant="destructive" onClick={logout}>
+          
+          <Button variant="destructive" onClick={() => logout()}>
             Cerrar Sesión
+          </Button>
+
+          {/* 👇 EL NUEVO BOTÓN 👇 */}
+          <Button
+            variant="outline"
+            className="bg-slate-700 hover:bg-slate-600"
+            onClick={handleLogoutAll}
+          >
+            Cerrar todas las Sesiones
           </Button>
         </CardContent>
       </Card>

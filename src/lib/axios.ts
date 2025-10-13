@@ -2,6 +2,7 @@
 // src/lib/axios.ts
 import axios from "axios";
 import { refreshToken } from "@/features/auth/services/authService";
+import { apiController } from "./apiSignal";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -17,19 +18,21 @@ export const api = axios.create({
 
 // Lista de rutas que NUNCA deben llevar el token de autorización
 const publicAuthUrls = [
-  '/auth/login/customer', 
-  '/auth/login/admin', 
-  '/auth/refresh',
-  '/public/customers'
+  "/auth/login/customer",
+  "/auth/login/admin",
+  "/auth/refresh",
+  "/public/customers",
 ];
-
-
 
 // 1. Interceptor para AÑADIR el token a cada petición
 api.interceptors.request.use(
   (config) => {
     // 👇 --- CAMBIO CLAVE AQUÍ --- 👇
     // No adjuntes el token de acceso a la petición de refresco
+    // Esto vincula la petición al controller. Si el controller se aborta,
+    // esta petición se cancelará.
+    config.signal = apiController.signal;
+
     if (config.url && publicAuthUrls.includes(config.url)) {
       return config;
     }
@@ -68,51 +71,69 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+
+      if (originalRequest.url?.endsWith("/auth/logout")) {
+        console.warn(
+          "Logout failed (likely expired token), not refreshing. Cleaning up client-side."
+        );
+        return Promise.reject(error);
+      }
+      
       if (isRefreshing) {
         // --- LOG PARA DEPURAR ---
         console.log("REQUEST EN COLA:", originalRequest.url);
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers['Authorization'] = 'Bearer ' + token;
+        }).then((token) => {
+          originalRequest.headers["Authorization"] = "Bearer " + token;
           return axios(originalRequest);
         });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
-      
+
       // --- LOG PARA DEPURAR ---
       console.log("⛔ Token expirado. INICIANDO LÓGICA DE REFRESH.");
 
       try {
-        const currentRefreshToken = localStorage.getItem('refreshToken');
+        const currentRefreshToken = localStorage.getItem("refreshToken");
         if (!currentRefreshToken) {
-            console.error("No hay refresh token para intentar el refresco.");
-            return Promise.reject(error);
+          console.error("No hay refresh token para intentar el refresco.");
+          return Promise.reject(error);
         }
 
-        const response = await refreshToken({ refreshToken: currentRefreshToken });
-        
+        const response = await refreshToken({
+          refreshToken: currentRefreshToken,
+        });
+
         // --- LOG PARA DEPURAR ---
-        console.log("✅ Token refrescado exitosamente. NUEVOS TOKENS RECIBIDOS.");
+        console.log(
+          "✅ Token refrescado exitosamente. NUEVOS TOKENS RECIBIDOS."
+        );
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+          response.data;
 
-        localStorage.setItem('accessToken', newAccessToken);
-        localStorage.setItem('refreshToken', newRefreshToken); // Esto es correcto
-        api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        localStorage.setItem("accessToken", newAccessToken);
+        localStorage.setItem("refreshToken", newRefreshToken); // Esto es correcto
+        api.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${newAccessToken}`;
+        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
 
         processQueue(null, newAccessToken);
         return api(originalRequest);
       } catch (refreshError) {
         // --- LOG PARA DEPURAR ---
-        console.error("❌ FALLÓ EL REFRESH TOKEN. Limpiando sesión.", refreshError);
+        console.error(
+          "❌ FALLÓ EL REFRESH TOKEN. Limpiando sesión.",
+          refreshError
+        );
         processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login/customer'; 
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/login/customer";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

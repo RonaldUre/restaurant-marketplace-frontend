@@ -20,7 +20,7 @@ export interface AuthContextType {
     email: string,
     password: string
   ) => Promise<void>;
-  logout: () => void;
+  logout: (allSessions?: boolean) => void; 
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
