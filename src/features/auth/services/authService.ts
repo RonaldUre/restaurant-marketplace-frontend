@@ -84,11 +84,3 @@ export const refreshToken = (payload: RefreshPayload) => {
   return publicApi.post<TokenResponse>("/auth/refresh", payload);
 };
 
-/**
- * Obtiene los datos del cliente autenticado.
- * GET /customers/me
- */
-export const getCustomerMe = () => {
-  // 👇 6. Esta se queda con 'api' porque es una ruta protegida
-  return api.get("/customers/me");
-};
