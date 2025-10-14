@@ -3,7 +3,6 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   Home,
-  Users,
   LogOut,
   X,
   User,
@@ -30,34 +29,29 @@ const superAdminNavItems = [
     path: "/admin/restaurants",
     icon: <Store className="h-5 w-5" />,
   },
-  {
-    label: "Usuarios",
-    path: "/admin/users", // Asumiendo una futura ruta
-    icon: <Users className="h-5 w-5" />,
-  },
 ];
 
 // 2. Para RESTAURANT_ADMIN
 const restaurantAdminNavItems = [
-  {
-    label: "Dashboard",
-    path: "/admin/dashboard",
-    icon: <Home className="h-5 w-5" />,
+
+    {
+    label: "Mi Restaurant",
+    path: "/admin/my-restaurant",
+    icon: <Store className="h-5 w-5" />,
   },
-  // NOTA: En la Fase 2, aquí iría el enlace a "Mi Restaurante"
 ];
 
 // 3. Para CUSTOMER
 const customerNavItems = [
   {
-    label: "Dashboard",
-    path: "/dashboard",
-    icon: <Home className="h-5 w-5" />,
-  },
-  {
     label: "Mi Perfil",
     path: "/profile",
     icon: <User className="h-5 w-5" />,
+  },
+    {
+    label: "Marketplace",
+    path: "/marketplace",
+    icon: <Store className="w-5 h-5" />,
   },
 ];
 

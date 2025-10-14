@@ -3,10 +3,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export function LandingPage() {
-  // 👇 1. OBTÉN EL NUEVO ESTADO
   const { user, isAuthenticated, isLoading, isLoggingOut } = useAuth();
 
-  // 👇 2. MODIFICA LA CONDICIÓN DE CARGA
   if (isLoading || isLoggingOut) {
     return <div className="flex h-screen items-center justify-center">Cargando...</div>;
   }
@@ -15,8 +13,16 @@ export function LandingPage() {
     return <Navigate to="/login/customer" replace />;
   }
 
-  const isAdmin = user.role === "RESTAURANT_ADMIN" || user.role === "SUPER_ADMIN";
-  const targetDashboard = isAdmin ? "/admin/dashboard" : "/dashboard";
-
-  return <Navigate to={targetDashboard} replace />;
+  // 👇 CAMBIO: Lógica de redirección específica por rol
+  switch (user.role) {
+    case "CUSTOMER":
+      return <Navigate to="/marketplace" replace />;
+    case "SUPER_ADMIN":
+      return <Navigate to="/admin/dashboard" replace />;
+    case "RESTAURANT_ADMIN":
+      return <Navigate to="/admin/my-restaurant" replace />;
+    default:
+      // Fallback por si acaso, aunque no debería ocurrir
+      return <Navigate to="/login/customer" replace />;
+  }
 }

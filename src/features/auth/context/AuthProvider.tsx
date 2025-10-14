@@ -5,7 +5,7 @@ import {
   type ReactNode,
   useCallback,
   useMemo,
-} from "react"; // 👈 1. Importa useCallback y useMemo
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext, type AuthUser } from "./AuthContext";
 import { loginCustomer, loginAdmin, logoutUser } from "../services/authService";
@@ -18,7 +18,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
 
-  // useEffect se simplifica: solo decodifica el token si existe.
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -35,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       } catch (error) {
         console.error("Error al decodificar el token:", error);
-        // Limpia en caso de token inválido
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
       }
@@ -43,63 +41,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // 👇 2. Envuelve las funciones en useCallback
   const login = useCallback(
     async (type: "customer" | "admin", email: string, password: string) => {
-      // 1. Llama a la API para obtener el token
       const loginFunction = type === "customer" ? loginCustomer : loginAdmin;
       const response = await loginFunction({ email, password });
       const { accessToken, refreshToken } = response.data;
 
-      // 2. Guarda los tokens y configura Axios
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
 
-      // 3. Decodifica el token y establece el usuario directamente
       const decoded = decodeJwt(accessToken) as {
         sub: string;
         email: string;
         roles: string[];
       };
-      setUser({
+
+      // Creamos el objeto del usuario
+      const authenticatedUser: AuthUser = {
         id: Number(decoded.sub),
         email: decoded.email,
         role: decoded.roles[0] as AuthUser["role"],
-      });
+      };
+
+      // Establecemos el estado
+      setUser(authenticatedUser);
+      
+      // --- 👇 ESTE ES EL ÚNICO CAMBIO REALIZADO 👇 ---
+      // Devolvemos el objeto del usuario para que la página de login pueda usarlo
+      return authenticatedUser;
     },
     []
-  ); // El array vacío significa que esta función nunca cambiará
+  );
 
 
   const logout = useCallback(async (allSessions = false) => {
-
-    //Aborta todas las peticiones en curso ANTES de hacer cualquier otra cosa.
     resetApiController();
-
     setIsLoggingOut(true);
 
     const isAdmin =
       user?.role === "RESTAURANT_ADMIN" || user?.role === "SUPER_ADMIN";
     const logoutRedirectPath = isAdmin ? "/admin/login" : "/login/customer";
 
-    // Inicia la navegación de inmediato para una UX fluida
     navigate(logoutRedirectPath);
-
-    // Obtén el refresh token ANTES de limpiar el localStorage
     const currentRefreshToken = localStorage.getItem("refreshToken");
 
     try {
       if (currentRefreshToken) {
-        // 👇 Llama al endpoint del backend para invalidar el token
         await logoutUser({ refreshToken: currentRefreshToken }, allSessions);
       }
     } catch (error) {
-      // Opcional: puedes loguear el error, pero no deberías detener
-      // el proceso de logout del cliente por esto.
       console.error("Falló el logout en el servidor:", error);
     } finally {
-      // Usa un pequeño timeout para que la navegación complete la transición
-      // antes de que el estado de autenticación cambie.
       setTimeout(() => {
         setUser(null);
         localStorage.removeItem("accessToken");
@@ -114,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAuthenticated: !!user,
       isLoading,
-      isLoggingOut, // 👈 2. EXPONE EL ESTADO
+      isLoggingOut,
       login,
       logout,
     }),

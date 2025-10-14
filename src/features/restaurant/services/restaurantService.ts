@@ -72,6 +72,11 @@ export interface ListRestaurantsParams {
   sortDir?: "asc" | "desc";
 }
 
+export interface RestaurantSelectItem {
+  id: number;
+  name: string;
+}
+
 // --- Funciones del Servicio API (Plataforma) ---
 
 /**
@@ -117,4 +122,8 @@ export const suspendRestaurant = (id: number, reason?: string) => {
  */
 export const unsuspendRestaurant = (id: number) => {
   return api.post<RestaurantDetail>(`/platform/restaurants/${id}/unsuspend`);
+};
+
+export const getAllRestaurantsForSelect = () => {
+  return api.get<RestaurantSelectItem[]>("/platform/restaurants/select");
 };

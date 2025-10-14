@@ -32,7 +32,7 @@ export default function LoginPageCustomer() {
       // 👇 Llama a login con el tipo 'customer'
       await login("customer", values.email, values.password);
       toast.success("¡Bienvenido de nuevo!");
-      navigate("/dashboard");
+      navigate("/marketplace");
     } catch (error) {
       console.error("Error de login:", error);
       toast.error("Credenciales incorrectas. Por favor, intenta de nuevo.");

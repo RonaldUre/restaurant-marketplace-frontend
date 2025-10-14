@@ -16,23 +16,33 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { LoginFormFields } from "../components/LoginFormFields"; // Reutilizamos el mismo componente de campos
+import { LoginFormFields } from "../components/LoginFormFields";
 
 export default function LoginPageAdmin() {
-  const { login } = useAuth(); // 👈 Obtén la función de login
-  const navigate = useNavigate(); // 👈 Obtén la función de navegación
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  // La lógica `onSubmit` la conectaremos en el siguiente paso al AuthProvider
   const onSubmit = async (values: LoginInput) => {
     try {
-      // 👇 Llama a login con el tipo 'admin'
-      await login("admin", values.email, values.password);
+      // 👇 CAMBIO: Obtenemos el usuario después del login
+      const user = await login("admin", values.email, values.password);
       toast.success("Acceso de administrador concedido.");
-      navigate("/dashboard"); // Por ahora, también lo mandamos al mismo dashboard
+
+      // 👇 CAMBIO: Redirigimos según el rol
+      switch (user.role) {
+        case "SUPER_ADMIN":
+          navigate("/admin/dashboard");
+          break;
+        case "RESTAURANT_ADMIN":
+          navigate("/admin/my-restaurant");
+          break;
+        default:
+          navigate("/"); // Fallback a la landing page
+      }
     } catch (error) {
       console.error("Error de login de admin:", error);
       toast.error("Credenciales de administrador incorrectas.");
@@ -55,7 +65,6 @@ export default function LoginPageAdmin() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* ¡Reutilización en acción! */}
               <LoginFormFields control={form.control} />
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Ingresando..." : "Ingresar"}
