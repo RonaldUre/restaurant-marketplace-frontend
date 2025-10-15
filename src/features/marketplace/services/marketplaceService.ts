@@ -44,6 +44,7 @@ export interface PublicProductCard {
   category: string;
   priceAmount: number;
   priceCurrency: string;
+  available: boolean;
 }
 
 export interface PublicProductDetail {
@@ -53,6 +54,7 @@ export interface PublicProductDetail {
   category: string;
   priceAmount: number;
   priceCurrency: string;
+  available: boolean;
 }
 
 export interface ListProductsPublicParams {

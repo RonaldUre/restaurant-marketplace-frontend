@@ -1,7 +1,9 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { type PublicProductCard as ProductCardType } from "../services/marketplaceService";
 import { ShoppingCart } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   product: ProductCardType;
@@ -13,17 +15,29 @@ interface Props {
 export function ProductCard({ product, isRestaurantOpen, onCardClick, onAddToCart }: Props) {
   
   const handleAddToCartClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que se abra el modal al hacer clic en el botón
+    e.stopPropagation();
     onAddToCart();
   };
 
+  // The card is actionable if the restaurant is open AND the product is available
+  const isActionable = isRestaurantOpen && product.available;
+
   return (
     <Card
-      className="flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer h-full"
-      onClick={onCardClick}
+      className={cn(
+        "flex flex-col overflow-hidden transition-all duration-200 h-full",
+        isActionable ? "hover:shadow-lg cursor-pointer" : "opacity-60 grayscale-[50%]"
+      )}
+      onClick={isActionable ? onCardClick : undefined}
     >
       <CardHeader className="p-0">
-        <div className="aspect-video bg-muted flex items-center justify-center">
+        <div className="aspect-video bg-muted flex items-center justify-center relative">
+            {/* Show "Agotado" badge if not available */}
+            {!product.available && (
+              <Badge variant="destructive" className="absolute top-2 left-2 z-10">
+                Agotado
+              </Badge>
+            )}
             <img 
               src={`https://placehold.co/400x300/e2e8f0/334155?text=${product.name.charAt(0)}`}
               alt={`Imagen de ${product.name}`}
@@ -44,7 +58,8 @@ export function ProductCard({ product, isRestaurantOpen, onCardClick, onAddToCar
          <Button 
             className="w-full"
             onClick={handleAddToCartClick}
-            disabled={!isRestaurantOpen} // El botón se deshabilita si el restaurante está cerrado
+            // Disable button if not actionable
+            disabled={!isActionable}
          >
             <ShoppingCart className="mr-2 h-4 w-4" />
             Añadir

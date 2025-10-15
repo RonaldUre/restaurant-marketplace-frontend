@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { BaseModal } from "@/components/shared/BaseModal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,17 +20,19 @@ export function ProductDetailModal({ product, isLoading, isOpen, isRestaurantOpe
     onAddToCart();
     onClose();
   };
+
+  const isActionable = isRestaurantOpen && (product?.available ?? false);
   
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title={product?.name || "Cargando..."}
-      // El footer ahora contiene el botón de añadir al carrito
       footer={
         <Button 
           className="w-full" 
-          disabled={isLoading || !isRestaurantOpen}
+          // Disable button if loading, restaurant is closed, or product is unavailable
+          disabled={isLoading || !isActionable}
           onClick={handleAddToCartAndClose}
         >
           <ShoppingCart className="mr-2 h-4 w-4" />
@@ -45,7 +48,13 @@ export function ProductDetailModal({ product, isLoading, isOpen, isRestaurantOpe
         </div>
       ) : product ? (
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">{product.category}</p>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground">{product.category}</p>
+            {/* Show "Agotado" badge if not available */}
+            {!product.available && (
+              <Badge variant="destructive">Agotado</Badge>
+            )}
+          </div>
           <p>{product.description || "Este producto no tiene una descripción detallada."}</p>
           <p className="text-right text-lg font-bold text-primary">
             {product.priceAmount.toFixed(2)} {product.priceCurrency}
@@ -57,4 +66,3 @@ export function ProductDetailModal({ product, isLoading, isOpen, isRestaurantOpe
     </BaseModal>
   );
 }
-
