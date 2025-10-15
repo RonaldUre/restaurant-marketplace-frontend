@@ -6,6 +6,7 @@ import {
   LogOut,
   X,
   User,
+  Receipt,
   Store, // Icono para Restaurantes
   PowerOff, // Icono para Cerrar Todas las Sesiones
 } from "lucide-react";
@@ -46,6 +47,11 @@ const customerNavItems = [
     label: "Marketplace",
     path: "/marketplace",
     icon: <Store className="h-5 w-5" />,
+  },
+    {
+    label: "Mis Órdenes",
+    path: "/my-orders",
+    icon: <Receipt className="h-5 w-5" />,
   },
 ];
 

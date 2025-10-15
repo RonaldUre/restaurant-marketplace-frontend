@@ -20,6 +20,7 @@ import RestaurantDetailPage from "@/features/marketplace/pages/RestaurantDetailP
 import PlatformReportsPage from "@/features/reporting/pages/PlatformReportsPage"; // 👈 1. Importa la nueva página
 import RestaurantListPage from "@/features/restaurant/pages/RestaurantListPage";
 import RestaurantFormPage from "@/features/restaurant/pages/RestaurantFormPage";
+import MyOrdersPage from "@/features/marketplace/pages/MyOrdersPage";
 
 // --- Restaurant Admin Pages ---
 import MyRestaurantPage from "@/features/my-restaurant/pages/MyRestaurantPage";
@@ -37,27 +38,97 @@ export default function AppRoutes() {
       {/* --- Rutas Protegidas --- */}
       <Route element={<PrivateLayout />}>
         {/* === Customer Routes === */}
-        <Route path="/profile" element={<ProtectedRoute allowedRoles={["CUSTOMER"]}><ProfilePage /></ProtectedRoute>} />
-        <Route path="/marketplace" element={<ProtectedRoute allowedRoles={["CUSTOMER"]}><MarketplacePage /></ProtectedRoute>} />
-        <Route path="/restaurants/:slug" element={<ProtectedRoute allowedRoles={["CUSTOMER"]}><RestaurantDetailPage /></ProtectedRoute>} />
-
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace"
+          element={
+            <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+              <MarketplacePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/restaurants/:slug"
+          element={
+            <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+              <RestaurantDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-orders"
+          element={
+            <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+              <MyOrdersPage />
+            </ProtectedRoute>
+          }
+        />
         {/* === SUPER_ADMIN Routes === */}
         <Route
-          path="/admin/dashboard" // 👈 
+          path="/admin/dashboard" // 👈
           element={
             <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
               <PlatformReportsPage />
             </ProtectedRoute>
           }
         />
-        <Route path="/admin/restaurants" element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]}><RestaurantListPage /></ProtectedRoute>} />
-        <Route path="/admin/restaurants/new" element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]}><RestaurantFormPage /></ProtectedRoute>} />
-        <Route path="/admin/restaurants/:id/edit" element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]}><RestaurantFormPage /></ProtectedRoute>} />
+        <Route
+          path="/admin/restaurants"
+          element={
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <RestaurantListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/restaurants/new"
+          element={
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <RestaurantFormPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/restaurants/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <RestaurantFormPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* === RESTAURANT_ADMIN Routes === */}
-        <Route path="/admin/my-restaurant" element={<ProtectedRoute allowedRoles={["RESTAURANT_ADMIN"]}><MyRestaurantPage /></ProtectedRoute>} />
-        <Route path="/admin/my-restaurant/products/new" element={<ProtectedRoute allowedRoles={["RESTAURANT_ADMIN"]}><ProductFormPage /></ProtectedRoute>} />
-        <Route path="/admin/my-restaurant/products/:id/edit" element={<ProtectedRoute allowedRoles={["RESTAURANT_ADMIN"]}><ProductFormPage /></ProtectedRoute>} />
+        <Route
+          path="/admin/my-restaurant"
+          element={
+            <ProtectedRoute allowedRoles={["RESTAURANT_ADMIN"]}>
+              <MyRestaurantPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/my-restaurant/products/new"
+          element={
+            <ProtectedRoute allowedRoles={["RESTAURANT_ADMIN"]}>
+              <ProductFormPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/my-restaurant/products/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["RESTAURANT_ADMIN"]}>
+              <ProductFormPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );

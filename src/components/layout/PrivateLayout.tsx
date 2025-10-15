@@ -1,26 +1,59 @@
 import { useState } from "react";
-import { Outlet} from "react-router-dom"; // 👈 Importa useNavigate
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Header } from "./Header"; // 👈 Importa el nuevo Header
-import { useCart } from "@/hooks/useCart"; // Importamos el hook del carrito
+import { Header } from "./Header";
+import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
+import { OrderConfirmationModal } from "@/features/marketplace/components/OrderConfirmationModal"; // 👈 1. Importar el nuevo modal
+import { placeOrder } from "@/features/marketplace/services/orderingService"; // 👈 2. Importar el servicio de órdenes
 
 export default function PrivateLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { restaurantId, items } = useCart(); // Obtenemos datos del carrito
+  
+  // State for the new confirmation modal flow
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  // 👇 Lógica para el botón "Realizar Pedido"
+  const { items, restaurantId, restaurantName, totalPrice, clearCart } = useCart();
+  const navigate = useNavigate();
+
+  // Esta función, llamada desde el carrito, AHORA SOLO ABRE EL MODAL de confirmación
   const handleCheckout = () => {
     if (!restaurantId || items.length === 0) {
       toast.error("Tu carrito está vacío.");
       return;
     }
-    // Por ahora, solo es un placeholder. Más adelante aquí llamaremos a la API.
-    console.log("Iniciando checkout para el restaurante:", restaurantId);
-    console.log("Items:", items);
-    toast.info("Iniciando el proceso de checkout...");
-    // navigate('/checkout'); // Descomentar cuando creemos la página de checkout
+    setIsConfirmationModalOpen(true); // Abre el modal
+  };
+
+  // Esta nueva función se ejecuta al hacer clic en "Confirmar" DENTRO DEL MODAL
+  const handlePlaceOrder = async () => {
+    if (!restaurantId || items.length === 0) return;
+    
+    setIsPlacingOrder(true);
+    try {
+      const payload = {
+        restaurantId,
+        items: items.map(item => ({ productId: item.id, qty: item.quantity })),
+      };
+      
+      await placeOrder(payload);
+
+      toast.success("¡Orden creada exitosamente!", {
+        description: "Serás redirigido a la página de 'Mis Órdenes' para gestionarla.",
+      });
+
+      clearCart();
+      setIsConfirmationModalOpen(false);
+      navigate('/my-orders'); // Redirige a la página de "Mis Órdenes"
+
+    } catch (error) {
+      console.error("Error al crear la orden:", error);
+      toast.error("No se pudo crear la orden. Inténtalo de nuevo.");
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   return (
@@ -33,7 +66,8 @@ export default function PrivateLayout() {
       {/* --- Sidebar para Móvil (Sheet) --- */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="p-0 flex flex-col">
-          <Sidebar isMobile onClose={() => setMobileMenuOpen(false)} />
+          {/* Ahora pasamos las props correctas que tu Sidebar espera */}
+          <Sidebar onClose={() => setMobileMenuOpen(false)} />
         </SheetContent>
       </Sheet>
       
@@ -49,6 +83,17 @@ export default function PrivateLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* --- Render del Modal de Confirmación --- */}
+      <OrderConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        onConfirm={handlePlaceOrder}
+        isLoading={isPlacingOrder}
+        items={items}
+        totalPrice={totalPrice}
+        restaurantName={restaurantName}
+      />
     </div>
   );
 }
