@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -9,10 +9,11 @@ import {
   type PublicProductCard,
   type PublicProductDetail,
 } from "../services/marketplaceService";
+import { useCart } from "@/hooks/useCart"; // 👈 1. Importar el hook del carrito
+import { isRestaurantOpenNow } from "@/lib/openingHours"; // 👈 2. Importar el helper de horarios
 import { RestaurantHeader } from "../components/RestaurantHeader";
 import { ProductCard } from "../components/ProductCard";
 import { ProductDetailModal } from "../components/ProductDetailModal";
-// 👇 CAMBIO: Importamos las piezas del componente de paginación
 import {
   Pagination,
   PaginationContent,
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button";
 
 export default function RestaurantDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { addItem } = useCart(); // 👈 3. Obtener la función para añadir al carrito
 
   // State for restaurant and products
   const [restaurant, setRestaurant] = useState<RestaurantPublicDetail | null>(null);
@@ -41,6 +43,22 @@ export default function RestaurantDetailPage() {
   const [selectedProduct, setSelectedProduct] = useState<PublicProductCard | null>(null);
   const [detailedProduct, setDetailedProduct] = useState<PublicProductDetail | null>(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
+
+  // 👇 4. Calcular si el restaurante está abierto usando useMemo para eficiencia
+  const isRestaurantOpen = useMemo(() => {
+    if (!restaurant) return false;
+    // Un restaurante solo puede aceptar pedidos si su estado es OPEN y su horario actual lo permite
+    return restaurant.status === "OPEN" && isRestaurantOpenNow(restaurant.openingHoursJson);
+  }, [restaurant]);
+
+
+  // Función para manejar la acción de añadir al carrito
+  const handleAddToCart = (product: PublicProductCard | PublicProductDetail) => {
+    if (!restaurant) return;
+    addItem(product, { id: restaurant.id, name: restaurant.name });
+    toast.success(`"${product.name}" añadido al carrito.`);
+  };
+
 
   // Fetch restaurant details
   useEffect(() => {
@@ -121,6 +139,13 @@ export default function RestaurantDetailPage() {
       
       <RestaurantHeader restaurant={restaurant} />
       
+      {/* 👇 5. Añadir un banner de advertencia si el restaurante está cerrado */}
+      {!isRestaurantOpen && (
+        <div className="rounded-md border border-amber-500 bg-amber-50 p-4 text-center text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+            <p className="font-semibold">Este restaurante está cerrado actualmente y no acepta pedidos.</p>
+        </div>
+      )}
+      
       <div>
         <h2 className="text-2xl font-bold tracking-tight mb-4">Menú</h2>
         {isProductsLoading ? (
@@ -133,7 +158,11 @@ export default function RestaurantDetailPage() {
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                onClick={() => setSelectedProduct(product)} 
+                // Renombramos la prop para evitar confusión
+                onCardClick={() => setSelectedProduct(product)} 
+                // 👇 6. Pasamos la función para añadir al carrito y el estado de apertura
+                onAddToCart={() => handleAddToCart(product)}
+                isRestaurantOpen={isRestaurantOpen}
               />
             ))}
           </div>
@@ -144,7 +173,6 @@ export default function RestaurantDetailPage() {
         )}
       </div>
 
-      {/* 👇 CAMBIO: Implementación correcta de la paginación */}
       {totalPages > 1 && (
         <Pagination>
           <PaginationContent>
@@ -182,7 +210,11 @@ export default function RestaurantDetailPage() {
         onClose={() => setSelectedProduct(null)}
         isLoading={isModalLoading}
         product={detailedProduct}
+        // 👇 7. Pasamos la función y el estado al modal también
+        onAddToCart={() => detailedProduct && handleAddToCart(detailedProduct)}
+        isRestaurantOpen={isRestaurantOpen}
       />
     </div>
   );
 }
+

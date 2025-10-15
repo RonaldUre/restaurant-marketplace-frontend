@@ -1,19 +1,28 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { type PublicProductCard as ProductCardType } from "../services/marketplaceService";
+import { ShoppingCart } from "lucide-react";
 
 interface Props {
   product: ProductCardType;
-  onClick: () => void; // Function to handle click, e.g., open a modal
+  isRestaurantOpen: boolean;
+  onCardClick: () => void;
+  onAddToCart: () => void;
 }
 
-export function ProductCard({ product, onClick }: Props) {
+export function ProductCard({ product, isRestaurantOpen, onCardClick, onAddToCart }: Props) {
+  
+  const handleAddToCartClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que se abra el modal al hacer clic en el botón
+    onAddToCart();
+  };
+
   return (
     <Card
-      className="overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full"
-      onClick={onClick}
+      className="flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer h-full"
+      onClick={onCardClick}
     >
       <CardHeader className="p-0">
-        {/* Placeholder for a product image */}
         <div className="aspect-video bg-muted flex items-center justify-center">
             <img 
               src={`https://placehold.co/400x300/e2e8f0/334155?text=${product.name.charAt(0)}`}
@@ -22,7 +31,7 @@ export function ProductCard({ product, onClick }: Props) {
             />
         </div>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex-1">
         <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-base font-semibold">{product.name}</CardTitle>
           <div className="text-base font-bold text-primary whitespace-nowrap">
@@ -31,6 +40,16 @@ export function ProductCard({ product, onClick }: Props) {
         </div>
         <p className="text-sm text-muted-foreground">{product.category}</p>
       </CardContent>
+      <CardFooter className="p-4 pt-0">
+         <Button 
+            className="w-full"
+            onClick={handleAddToCartClick}
+            disabled={!isRestaurantOpen} // El botón se deshabilita si el restaurante está cerrado
+         >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Añadir
+         </Button>
+      </CardFooter>
     </Card>
   );
 }

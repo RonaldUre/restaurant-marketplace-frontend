@@ -10,14 +10,13 @@ import {
   PowerOff, // Icono para Cerrar Todas las Sesiones
 } from "lucide-react";
 
+// 👇 1. Se añade 'isMobile' a las props
 type SidebarProps = {
-  // El único prop que necesita es la función para cerrarse (en vista móvil)
+  isMobile?: boolean;
   onClose?: () => void;
 };
 
 // --- NAVEGACIÓN POR ROL ---
-
-// 1. Para SUPER_ADMIN
 const superAdminNavItems = [
   {
     label: "Dashboard",
@@ -30,36 +29,31 @@ const superAdminNavItems = [
     icon: <Store className="h-5 w-5" />,
   },
 ];
-
-// 2. Para RESTAURANT_ADMIN
 const restaurantAdminNavItems = [
-
-    {
+  {
     label: "Mi Restaurant",
     path: "/admin/my-restaurant",
     icon: <Store className="h-5 w-5" />,
   },
 ];
-
-// 3. Para CUSTOMER
 const customerNavItems = [
   {
     label: "Mi Perfil",
     path: "/profile",
     icon: <User className="h-5 w-5" />,
   },
-    {
+  {
     label: "Marketplace",
     path: "/marketplace",
-    icon: <Store className="w-5 h-5" />,
+    icon: <Store className="h-5 w-5" />,
   },
 ];
 
-export default function Sidebar({ onClose }: SidebarProps) {
-  const { user, logout } = useAuth(); // Obtenemos ambas funciones
+// 👇 2. El componente ahora acepta y usa 'isMobile'
+export default function Sidebar({ isMobile = false, onClose }: SidebarProps) {
+  const { user, logout } = useAuth();
 
-  // Lógica para determinar qué menú mostrar
-  let navItems = customerNavItems; // Por defecto, el de cliente
+  let navItems = customerNavItems;
   if (user?.role === "SUPER_ADMIN") {
     navItems = superAdminNavItems;
   } else if (user?.role === "RESTAURANT_ADMIN") {
@@ -67,16 +61,25 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }
 
   const handleLogoutAll = () => {
-    logout(true); // Llama a logout con el parámetro para cerrar todas las sesiones
+    logout(true);
+  };
+
+  // 👇 3. Función segura para cerrar el menú solo en móvil
+  const handleLinkClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-background">
+    // 👇 4. El ancho ahora es dinámico
+    <aside className={`flex h-screen flex-col border-r bg-background ${isMobile ? 'w-full' : 'w-64'}`}>
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b px-4">
         <span className="text-lg font-bold tracking-tight text-primary">
           Marketplace
         </span>
+        {/* El botón de cerrar solo aparece si 'onClose' se pasa (típicamente en móvil) */}
         {onClose && (
           <Button
             variant="ghost"
@@ -96,7 +99,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             <NavLink
               key={path}
               to={path}
-              onClick={onClose} // Cierra el menú móvil al hacer clic
+              onClick={handleLinkClick} // Usamos la nueva función
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
@@ -119,7 +122,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
             {user?.email}
           </div>
           <div className="text-[10px] font-semibold uppercase tracking-wide text-blue-500">
-            {user?.role.replace("_", " ")}
+            {/* Corregido para reemplazar todos los guiones bajos */}
+            {user?.role.replace(/_/g, " ")}
           </div>
         </div>
         <div className="space-y-1">
