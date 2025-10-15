@@ -79,7 +79,7 @@ export default function Sidebar({ isMobile = false, onClose }: SidebarProps) {
 
   return (
     // 👇 4. El ancho ahora es dinámico
-    <aside className={`flex h-screen flex-col border-r bg-background ${isMobile ? 'w-full' : 'w-64'}`}>
+    <aside className={`flex h-screen flex-col border-r bg-background sticky top-0 ${isMobile ? 'w-full' : 'w-64'}`}>
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b px-4">
         <span className="text-lg font-bold tracking-tight text-primary">

@@ -21,6 +21,8 @@ import PlatformReportsPage from "@/features/reporting/pages/PlatformReportsPage"
 import RestaurantListPage from "@/features/restaurant/pages/RestaurantListPage";
 import RestaurantFormPage from "@/features/restaurant/pages/RestaurantFormPage";
 import MyOrdersPage from "@/features/marketplace/pages/MyOrdersPage";
+import PaymentSuccessPage from "@/features/marketplace/pages/PaymentSuccessPage";
+import PaymentCancelledPage from "@/features/marketplace/pages/PaymentCancelledPage";
 
 // --- Restaurant Admin Pages ---
 import MyRestaurantPage from "@/features/my-restaurant/pages/MyRestaurantPage";
@@ -67,6 +69,23 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["CUSTOMER"]}>
               <MyOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/payment/success"
+          element={
+            <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+              <PaymentSuccessPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/cancelled"
+          element={
+            <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+              <PaymentCancelledPage />
             </ProtectedRoute>
           }
         />

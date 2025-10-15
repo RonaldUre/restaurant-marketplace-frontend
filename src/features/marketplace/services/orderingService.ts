@@ -116,3 +116,11 @@ export const listMyOrders = (params: ListMyOrdersParams) => {
 export const cancelOwnOrder = (orderId: number, payload?: CancelOrderPayload) => {
   return api.post<OrderDetailResponse>(`/orders/${orderId}/cancel`, payload);
 };
+
+/**
+ * Obtiene la vista detallada de una sola orden del usuario actual.
+ * GET /orders/{id}
+ */
+export const getOrderDetail = (orderId: number) => {
+  return api.get<OrderDetailResponse>(`/orders/${orderId}`);
+};

@@ -4,6 +4,7 @@ import { ProfileStatusTab } from "../components/ProfileStatusTab";
 import { ProductCatalogTab } from "../components/ProductCatalogTab";
 import { InventoryManagementTab } from "../components/InventoryManagementTab";
 import { ReportsTab } from "../components/ReportsTab"; // 👈 1. Importa la nueva pestaña
+import { OrderManagementTab } from "../components/OrderManagementTab";
 
 export default function MyRestaurantPage() {
   return (
@@ -19,11 +20,12 @@ export default function MyRestaurantPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4"> {/* Ajuste para 4 pestañas */}
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Perfil y Estado</TabsTrigger>
           <TabsTrigger value="catalog">Catálogo</TabsTrigger>
           <TabsTrigger value="inventory">Inventario</TabsTrigger>
-          <TabsTrigger value="reports">Reportes</TabsTrigger> {/* 👈 2. Añade el botón de la pestaña */}
+          <TabsTrigger value="orders">Órdenes</TabsTrigger>
+          <TabsTrigger value="reports">Reportes</TabsTrigger>
         </TabsList>
 
         {/* Contenido de la Pestaña 1: Perfil y Estado */}
@@ -43,7 +45,11 @@ export default function MyRestaurantPage() {
 
         {/* 👇 3. Añade el contenido de la nueva pestaña 👇 */}
         <TabsContent value="reports">
-            <ReportsTab />
+          <ReportsTab />
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <OrderManagementTab />
         </TabsContent>
       </Tabs>
     </div>

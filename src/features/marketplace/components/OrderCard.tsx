@@ -10,6 +10,7 @@ interface Props {
   order: OrderCardResponse;
   onPay: (order: OrderCardResponse) => void;
   onCancel: (order: OrderCardResponse) => void;
+  onViewDetails: (order: OrderCardResponse) => void;
 }
 
 // Helper para obtener el color y texto del estado
@@ -19,16 +20,16 @@ const getStatusDetails = (status: string) => {
       return { variant: "success", text: "Pagada" };
     case "CANCELLED":
       return { variant: "destructive", text: "Cancelada" };
-    case "CREATED":
-      return { variant: "secondary", text: "Pendiente de Pago" };
+    case "PENDING":
+      return { variant: "secondary", text: "Pendiente" };
     default:
       return { variant: "default", text: status };
   }
 };
 
-export function OrderCard({ order, onPay, onCancel }: Props) {
+export function OrderCard({ order, onPay, onCancel, onViewDetails }: Props) {
   const statusDetails = getStatusDetails(order.status);
-  const canTakeAction = order.status === "CREATED";
+  const canTakeAction = order.status === "PENDING";
 
   return (
     <Card>
@@ -55,12 +56,21 @@ export function OrderCard({ order, onPay, onCancel }: Props) {
           </div>
         </div>
       </CardContent>
-      {canTakeAction && (
-        <CardFooter className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onCancel(order)}>Cancelar</Button>
-            <Button size="sm" onClick={() => onPay(order)}>Pagar Orden</Button>
-        </CardFooter>
-      )}
+      <CardFooter className="flex justify-end gap-2">
+        <Button variant="outline" size="sm" onClick={() => onViewDetails(order)}>
+          Ver Detalle
+        </Button>
+        {canTakeAction && (
+          <>
+            <Button variant="destructive" size="sm" onClick={() => onCancel(order)}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={() => onPay(order)}>
+              Pagar Orden
+            </Button>
+          </>
+        )}
+      </CardFooter>
     </Card>
   );
 }
